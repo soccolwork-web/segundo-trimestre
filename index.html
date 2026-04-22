@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<title>Minhas Metas</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: system-ui;
+  background: radial-gradient(circle at top, #1f2933, #0b0f14);
+  color: #e5e7eb;
+  padding: 40px 20px;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.grid {
+  display: grid;
+  gap: 24px;
+  max-width: 1000px;
+  margin: auto;
+}
+
+.card {
+  padding: 20px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.big {
+  font-size: 18px;
+  margin-bottom: 16px;
+  opacity: 0.9;
+}
+
+.mini-grid {
+  display: grid;
+  grid-template-columns: repeat(4,1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.box {
+  text-align: center;
+  padding: 10px;
+  border-radius: 10px;
+  background: rgba(0,0,0,0.3);
+}
+
+.num {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.label {
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+/* SUBITENS */
+
+.sub-container {
+  margin-top: 12px;
+  padding: 14px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.sub-title {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  opacity: 0.8;
+}
+
+.sub-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(0,0,0,0.3);
+  margin-bottom: 8px;
+  transition: 0.2s;
+}
+
+.sub-item:hover {
+  background: rgba(255,255,255,0.08);
+}
+
+.sub-item input {
+  transform: scale(1.2);
+}
+
+.sub-item.done {
+  opacity: 0.4;
+  text-decoration: line-through;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>Minhas metas ⏳</h1>
+
+<div class="grid" id="goals"></div>
+
+<script>
+const goals = [
+  {
+    name: "Finalizar Ponto Online",
+    date: "2026-04-30T23:59:59-03:00"
+  },
+  {
+    name: "MRR 15k - Grit Run",
+    date: "2026-05-15T23:59:59-03:00",
+    subs: [
+      "App nas lojas",
+      "Gateway de pagamento",
+      "Integração com relógios",
+      "Melhoria contínua do produto"
+    ]
+  },
+  {
+    name: "Finalizar TCC",
+    date: "2026-05-31T23:59:59-03:00"
+  },
+  {
+    name: "Meia maratona",
+    date: "2026-06-07T07:00:00-03:00"
+  }
+];
+
+const container = document.getElementById("goals");
+
+function createCard(goal, index) {
+  const card = document.createElement("div");
+  card.className = "card";
+
+  const subHTML = goal.subs
+    ? `
+      <div class="sub-container">
+        <div class="sub-title">Pilares críticos</div>
+        ${goal.subs.map((sub, i) => `
+          <label class="sub-item" id="sub-${index}-${i}">
+            <input type="checkbox" onchange="toggleSub(${index}, ${i})">
+            ${sub}
+          </label>
+        `).join("")}
+      </div>
+    `
+    : "";
+
+  card.innerHTML = `
+    <div class="title">${goal.name}</div>
+    <div class="big" id="headline-${index}">—</div>
+
+    <div class="mini-grid">
+      <div class="box"><div class="num" id="d-${index}">—</div><div class="label">dias</div></div>
+      <div class="box"><div class="num" id="h-${index}">—</div><div class="label">h</div></div>
+      <div class="box"><div class="num" id="m-${index}">—</div><div class="label">m</div></div>
+      <div class="box"><div class="num" id="s-${index}">—</div><div class="label">s</div></div>
+    </div>
+
+    ${subHTML}
+  `;
+
+  container.appendChild(card);
+}
+
+goals.forEach(createCard);
+
+function pad(v){ return String(v).padStart(2,"0"); }
+
+function update() {
+  const now = new Date();
+
+  goals.forEach((goal, i) => {
+    const target = new Date(goal.date);
+    const diff = target - now;
+
+    const dEl = document.getElementById(`d-${i}`);
+    const hEl = document.getElementById(`h-${i}`);
+    const mEl = document.getElementById(`m-${i}`);
+    const sEl = document.getElementById(`s-${i}`);
+    const headline = document.getElementById(`headline-${i}`);
+
+    if (diff <= 0) {
+      headline.textContent = "Concluído";
+      dEl.textContent = hEl.textContent = mEl.textContent = sEl.textContent = "0";
+      return;
+    }
+
+    const sec = Math.floor(diff/1000);
+    const min = Math.floor(sec/60);
+    const hr = Math.floor(min/60);
+    const d = Math.floor(hr/24);
+
+    const h = hr % 24;
+    const m = min % 60;
+    const s = sec % 60;
+
+    headline.textContent = `${d}d ${pad(h)}h ${pad(m)}m ${pad(s)}s`;
+
+    dEl.textContent = d;
+    hEl.textContent = pad(h);
+    mEl.textContent = pad(m);
+    sEl.textContent = pad(s);
+  });
+}
+
+function toggleSub(goalIndex, subIndex) {
+  const el = document.getElementById(`sub-${goalIndex}-${subIndex}`);
+  el.classList.toggle("done");
+}
+
+update();
+setInterval(update,1000);
+</script>
+
+</body>
+</html>
